@@ -36,7 +36,7 @@ defmodule Polyn.Schema do
 
   # If it's a user-defined event then look in the user's code base for
   # the dataschema dir
-  defp dataschema_dir(_event_type, nil), do: migrations_dir()
+  defp dataschema_dir(_event_type, nil), do: schemas_dir()
 
   # Look in some other schema dir for user-defined events (e.g. in tests)
   defp dataschema_dir(_event_type, dir), do: dir
@@ -55,7 +55,7 @@ defmodule Polyn.Schema do
   @doc """
   Path of user-defined schemas
   """
-  def migrations_dir do
-    Path.join(File.cwd!(), "/priv/polyn/migrations")
+  def schemas_dir do
+    Path.join(File.cwd!(), "/priv/polyn/schemas")
   end
 end

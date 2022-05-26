@@ -12,10 +12,12 @@ defmodule Mix.Tasks.Polyn.Migrate do
   end
 
   defp parse_args(args) do
-    {options, []} = OptionParser.parse!(args, strict: [dir: :string])
+    {options, []} =
+      OptionParser.parse!(args, strict: [migrations_dir: :string, schemas_dir: :string])
 
     %{
-      dir: Keyword.get(options, :dir, Schema.migrations_dir())
+      migrations_dir: Keyword.get(options, :migrations_dir, Polyn.Migrator.migrations_dir()),
+      schemas_dir: Keyword.get(options, :schemas_dir, Schema.schemas_dir())
     }
   end
 end

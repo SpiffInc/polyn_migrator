@@ -9,7 +9,6 @@ defmodule Mix.Tasks.Polyn.Gen.Migration do
   @shortdoc "Generates a new migration file"
 
   use Mix.Task
-  alias Polyn.Schema
 
   def run(args) do
     parse_args(args)
@@ -21,7 +20,7 @@ defmodule Mix.Tasks.Polyn.Gen.Migration do
 
     %{
       name: name,
-      dir: Keyword.get(options, :dir, Schema.migrations_dir())
+      dir: Keyword.get(options, :dir, Polyn.Migrator.migrations_dir())
     }
   end
 end

@@ -13,6 +13,7 @@ defmodule Polyn.Migrator do
 
   @typedoc """
   * `:migrations_dir` - Location of migration files
+  * `:schemas_dir` - Location of schema files
   * `:running_migration_id` - The timestamp/id of the migration file being run. Taken from the beginning of the file name
   * `:running_migration_command_num` - The number of the command being run in the migration module
   * `:already_run_migrations` - Migrations we've determined have already been executed on the server
@@ -22,6 +23,7 @@ defmodule Polyn.Migrator do
 
   @type t :: %__MODULE__{
           migrations_dir: binary(),
+          schemas_dir: binary(),
           running_migration_id: non_neg_integer() | nil,
           running_migration_command_num: non_neg_integer() | nil,
           migration_stream_info: Stream.info() | nil,
@@ -36,6 +38,7 @@ defmodule Polyn.Migrator do
     :running_migration_command_num,
     :migration_stream_info,
     :migrations_dir,
+    :schemas_dir,
     already_run_migrations: [],
     production_migrations: [],
     application_migrations: []
@@ -46,13 +49,17 @@ defmodule Polyn.Migrator do
   end
 
   def run(args) do
-    init_state(args)
+    new(args)
     |> fetch_migration_stream_info()
     |> create_migration_stream()
+    |> create_schema_store()
   end
 
-  defp init_state(%{dir: dir}) do
-    new(migrations_dir: dir)
+  @doc """
+  Path of migration files
+  """
+  def migrations_dir do
+    Path.join(File.cwd!(), "/priv/polyn/migrations")
   end
 
   defp fetch_migration_stream_info(state) do
@@ -83,4 +90,9 @@ defmodule Polyn.Migrator do
   end
 
   defp create_migration_stream(state), do: state
+
+  defp create_schema_store(state) do
+    SchemaStore.create_store()
+    state
+  end
 end
