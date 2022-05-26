@@ -10,7 +10,7 @@ defmodule Polyn.Schema do
   @spec compile(binary(), binary()) :: map()
   @spec compile(binary(), binary(), [{:dataschema_dir, binary()}]) :: map()
   def compile(type, specversion, opts \\ []) do
-    dataschema = get_dataschema(type, opts)
+    {_id, dataschema} = get_dataschema(type, opts) |> Map.pop("$id")
     eventschema = get_eventschema(specversion)
     put_in(eventschema, ["properties", "data"], dataschema)
   end
