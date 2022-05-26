@@ -112,7 +112,7 @@ defmodule Polyn.Migrator do
         {type, schema}
       end)
       |> Enum.each(fn {type, schema} ->
-        SchemaStore.save(type, schema)
+        :ok = SchemaStore.save(type, schema)
       end)
     end
 

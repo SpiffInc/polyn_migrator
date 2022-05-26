@@ -62,6 +62,40 @@ defmodule Polyn.MigratorTest do
     assert SchemaStore.get("foo.bar.v2")["properties"]["data"] == %{"type" => "string"}
   end
 
+  test "updates schemas in the store", context do
+    SchemaStore.save(
+      "foo.bar.v1",
+      %{
+        "type" => "object",
+        "properties" => %{
+          "name" => %{
+            "type" => "string"
+          }
+        }
+      }
+    )
+
+    add_dataschema(context.schemas_dir, "foo.bar.v1.json", """
+    {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "birthday": {
+          "type": "date"
+        }
+      }
+    }
+    """)
+
+    Migrator.run(%{migrations_dir: context.migrations_dir, schemas_dir: context.schemas_dir})
+
+    assert SchemaStore.get("foo.bar.v1")["properties"]["data"]["properties"]["birthday"] == %{
+             "type" => "date"
+           }
+  end
+
   # @tag capture_log: true
   # test "adds the polyn migration schemas to the server", %{tmp_dir: tmp_dir} do
   #   Migrator.run(["foo", tmp_dir])
