@@ -11,9 +11,11 @@ defmodule Polyn.MigrationGenerator do
   end
 
   defp parse_args(args) do
+    {options, [name]} = OptionParser.parse!(args, strict: [dir: :string])
+
     %{
-      name: Enum.at(args, 0),
-      dir: Enum.at(args, 1, migrations_dir())
+      name: name,
+      dir: Keyword.get(options, :dir, migrations_dir())
     }
   end
 

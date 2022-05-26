@@ -6,12 +6,12 @@ defmodule Polyn.MigrationGeneratorTest do
   @moduletag :tmp_dir
 
   test "adds folders if they don't exist", %{tmp_dir: tmp_dir} do
-    MigrationGenerator.run(["foo", tmp_dir])
+    MigrationGenerator.run(["foo", "--dir", tmp_dir])
     assert File.dir?(tmp_dir)
   end
 
   test "creates a migration", %{tmp_dir: tmp_dir} do
-    path = MigrationGenerator.run(["my_migration", tmp_dir])
+    path = MigrationGenerator.run(["my_migration", "--dir", tmp_dir])
     assert Path.dirname(path) == tmp_dir
     assert Path.basename(path) =~ ~r/^\d{14}_my_migration\.exs$/
 
@@ -23,16 +23,16 @@ defmodule Polyn.MigrationGeneratorTest do
   end
 
   test "underscores the filename when generating a migration", %{tmp_dir: tmp_dir} do
-    MigrationGenerator.run(["MyMigration", tmp_dir])
+    MigrationGenerator.run(["MyMigration", "--dir", tmp_dir])
     assert [name] = File.ls!(tmp_dir)
     assert name =~ ~r/^\d{14}_my_migration\.exs$/
   end
 
   test "raises when existing migration exists", %{tmp_dir: tmp_dir} do
-    MigrationGenerator.run(["my_migration", tmp_dir])
+    MigrationGenerator.run(["my_migration", "--dir", tmp_dir])
 
     assert_raise Mix.Error, ~r"migration can't be created", fn ->
-      MigrationGenerator.run(["my_migration", tmp_dir])
+      MigrationGenerator.run(["my_migration", "--dir", tmp_dir])
     end
   end
 
