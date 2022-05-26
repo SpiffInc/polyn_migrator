@@ -10,6 +10,14 @@ defmodule PolynMigrator.Application do
     children = [
       # Starts a worker by calling: PolynMigrator.Worker.start_link(arg)
       # {PolynMigrator.Worker, arg}
+      %{
+        id: Gnat.ConnectionSupervisor,
+        start: {
+          Gnat.ConnectionSupervisor,
+          :start_link,
+          [Application.fetch_env!(:polyn_migrator, :nats), [name: :polyn_connection_supervisor]]
+        }
+      }
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
