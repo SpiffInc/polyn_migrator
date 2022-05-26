@@ -8,7 +8,8 @@ defmodule Mix.Tasks.Polyn.Migrate do
   alias Polyn.Schema
 
   def run(args) do
-    Polyn.Migrator.run(args)
+    parse_args(args)
+    |> Polyn.Migrator.run()
   end
 
   defp parse_args(args) do
