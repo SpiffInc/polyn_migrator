@@ -45,6 +45,11 @@ defmodule Polyn.Migrator do
   ]
 
   def new(opts \\ []) do
+    opts =
+      Enum.into(opts, %{})
+      |> Map.put_new(:migrations_dir, migrations_dir())
+      |> Map.put_new(:schemas_dir, Schema.schemas_dir())
+
     struct!(__MODULE__, opts)
   end
 
@@ -53,6 +58,7 @@ defmodule Polyn.Migrator do
     |> fetch_migration_stream_info()
     |> create_migration_stream()
     |> create_schema_store()
+    |> add_schemas_to_store()
   end
 
   @doc """
@@ -93,6 +99,23 @@ defmodule Polyn.Migrator do
 
   defp create_schema_store(state) do
     SchemaStore.create_store()
+    state
+  end
+
+  defp add_schemas_to_store(state) do
+    if File.dir?(state.schemas_dir) do
+      File.ls!(state.schemas_dir)
+      |> Enum.map(fn file_name ->
+        type = String.replace(file_name, ".json", "")
+        schema = Schema.compile(type, "1.0.1", dataschema_dir: state.schemas_dir)
+
+        {type, schema}
+      end)
+      |> Enum.each(fn {type, schema} ->
+        SchemaStore.save(type, schema)
+      end)
+    end
+
     state
   end
 end

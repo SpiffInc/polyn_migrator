@@ -4,7 +4,7 @@ defmodule Polyn.MigratorTest do
   alias Jetstream.API.Stream
   alias Polyn.Connection
   alias Polyn.Migrator
-  # alias Polyn.SchemaStore
+  alias Polyn.SchemaStore
   import ExUnit.CaptureLog
 
   @moduletag :tmp_dir
@@ -12,31 +12,54 @@ defmodule Polyn.MigratorTest do
   @migration_stream "POLYN_MIGRATIONS"
   @migration_subject "POLYN_MIGRATIONS.all"
 
-  setup do
+  setup context do
     on_exit(fn ->
       Stream.delete(Connection.name(), @migration_stream)
+      SchemaStore.delete_store()
     end)
+
+    Map.put(context, :migrations_dir, Path.join(context.tmp_dir, "migrations"))
+    |> Map.put(:schemas_dir, Path.join(context.tmp_dir, "schemas"))
   end
 
   @tag capture_log: true
-  test "creates migration stream if not there", %{tmp_dir: tmp_dir} do
+  test "creates migration stream if not there", context do
     Stream.delete(Connection.name(), @migration_stream)
-    Migrator.run(%{dir: tmp_dir})
+    Migrator.run(%{migrations_dir: context.migrations_dir, schemas_dir: context.schemas_dir})
     assert {:ok, info} = Stream.info(Connection.name(), @migration_stream)
     assert info.config.name == @migration_stream
   end
 
   @tag capture_log: true
-  test "ignores migration stream if already existing", %{tmp_dir: tmp_dir} do
+  test "ignores migration stream if already existing", context do
     {:ok, _stream} =
       Stream.create(Connection.name(), %Stream{
         name: @migration_stream,
         subjects: [@migration_subject]
       })
 
-    Migrator.run(%{dir: tmp_dir})
+    Migrator.run(%{migrations_dir: context.migrations_dir, schemas_dir: context.schemas_dir})
     assert {:ok, info} = Stream.info(Connection.name(), @migration_stream)
     assert info.config.name == @migration_stream
+  end
+
+  test "adds schemas to the store", context do
+    add_dataschema(context.schemas_dir, "foo.bar.v1.json", """
+    {
+      "type": "null"
+    }
+    """)
+
+    add_dataschema(context.schemas_dir, "foo.bar.v2.json", """
+    {
+      "type": "string"
+    }
+    """)
+
+    Migrator.run(%{migrations_dir: context.migrations_dir, schemas_dir: context.schemas_dir})
+
+    assert SchemaStore.get("foo.bar.v1")["properties"]["data"] == %{"type" => "null"}
+    assert SchemaStore.get("foo.bar.v2")["properties"]["data"] == %{"type" => "string"}
   end
 
   # @tag capture_log: true
@@ -121,5 +144,10 @@ defmodule Polyn.MigratorTest do
 
   defp add_migration_file(dir, file_name, contents) do
     File.write!(Path.join(dir, file_name), contents)
+  end
+
+  defp add_dataschema(dir, schema_name, content) do
+    File.mkdir_p!(dir)
+    File.write!(Path.join(dir, schema_name), content)
   end
 end
