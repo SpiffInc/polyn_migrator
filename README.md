@@ -20,6 +20,32 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/polyn_migrator](https://hexdocs.pm/polyn_migrator).
 
+## Configuration
+
+### Domain
+
+The [Cloud Event Spec](https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md#type) specifies that every event "SHOULD be prefixed with a reverse-DNS name." This name should be consistent throughout your organization. You
+define that domain like this:
+
+```elixir
+config :polyn_migrator, :domain, "app.spiff"
+```
+
+### Connection
+
+You will need to provide the connection settings for your NATS connection. This will differ in-between environments.
+
+```elixir
+config :polyn_migrator, :nats, %{
+  name: :gnat, # (required) the registered named you want to give the Gnat connection
+  backoff_period: 4_000, # number of milliseconds to wait between consecutive reconnect attempts (default: 2_000)
+  connection_settings: [
+    %{host: "10.0.0.100", port: 4222},
+    %{host: "10.0.0.101", port: 4222},
+  ]
+}
+```
+
 ## Server Migrations
 
 To create a migration you use the mix task `mix polyn.gen.migration <name>`. If you wanted to create a new stream for user messages you could do the following:
