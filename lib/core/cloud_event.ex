@@ -15,7 +15,7 @@ defmodule Polyn.CloudEvent do
   defp cloud_events_file(file) do
     # we want to look inside the `priv` directory inside `Polyn` not
     # in the application that depends on Polyn
-    Application.app_dir(:polyn, ["priv", "cloud_events", file])
+    Application.app_dir(:polyn_migrator, ["priv", "cloud_events", file])
     |> File.read()
   end
 end
