@@ -11,6 +11,20 @@ defmodule Mix.Tasks.Polyn.Gen.Migration do
   use Mix.Task
 
   def run(args) do
-    Polyn.MigrationGenerator.run(args)
+    parse_args(args)
+    |> Polyn.MigrationGenerator.run()
+  end
+
+  defp parse_args(args) do
+    {options, [name]} = OptionParser.parse!(args, strict: [dir: :string])
+
+    %{
+      name: name,
+      dir: Keyword.get(options, :dir, migrations_dir())
+    }
+  end
+
+  def migrations_dir do
+    Path.join(File.cwd!(), "/priv/polyn/migrations")
   end
 end

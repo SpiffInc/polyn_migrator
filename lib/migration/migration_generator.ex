@@ -4,23 +4,9 @@ defmodule Polyn.MigrationGenerator do
   require Mix.Generator
 
   def run(args) do
-    args = parse_args(args)
     create_directory(args)
     validate_uniqueness(args)
     generate_file(args)
-  end
-
-  defp parse_args(args) do
-    {options, [name]} = OptionParser.parse!(args, strict: [dir: :string])
-
-    %{
-      name: name,
-      dir: Keyword.get(options, :dir, migrations_dir())
-    }
-  end
-
-  def migrations_dir do
-    Path.join(File.cwd!(), "/priv/polyn/migrations")
   end
 
   defp create_directory(%{dir: dir}) do
