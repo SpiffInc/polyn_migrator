@@ -2,6 +2,7 @@ defmodule Polyn.Schema do
   @moduledoc false
 
   alias Polyn.CloudEvent
+  alias Polyn.Naming
 
   @doc """
   Create a combined schema containing both the "event schema"
@@ -12,7 +13,9 @@ defmodule Polyn.Schema do
   def compile(type, specversion, opts \\ []) do
     {_id, dataschema} = get_dataschema(type, opts) |> Map.pop("$id")
     eventschema = get_eventschema(specversion)
+
     put_in(eventschema, ["properties", "data"], dataschema)
+    |> Map.put("$id", schema_id(type))
   end
 
   defp get_dataschema(type, opts) do
@@ -43,6 +46,11 @@ defmodule Polyn.Schema do
 
   defp get_eventschema(version) do
     CloudEvent.json_schema_for_version(version)
+  end
+
+  defp schema_id(type) do
+    domain = Application.fetch_env!(:polyn_migrator, :domain)
+    "#{Naming.dot_to_colon(domain)}:#{Naming.dot_to_colon(type)}"
   end
 
   @doc """
