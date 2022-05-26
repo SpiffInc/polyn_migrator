@@ -3,6 +3,7 @@ defmodule Polyn.MigrationGenerator do
 
   require Mix.Generator
 
+  @spec run(args :: map()) :: binary()
   def run(args) do
     create_directory(args)
     validate_uniqueness(args)
