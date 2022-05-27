@@ -11,7 +11,6 @@ defmodule Polyn.SchemaCompatability do
   def check!(old, new) do
     struct!(__MODULE__, new: new, old: old)
     |> get_diff()
-    |> tap(fn state -> IO.inspect(state.diffs, label: "DIFFS") end)
     |> check_differences()
   end
 
@@ -36,6 +35,7 @@ defmodule Polyn.SchemaCompatability do
 
   defp check_diff(state, diff) do
     required_change?(state, diff)
+    |> type_change?(diff)
   end
 
   defp required_change?(state, %{"path" => path} = diff) do
@@ -101,6 +101,25 @@ defmodule Polyn.SchemaCompatability do
   defp removed_required_fields_message(values, path) do
     "You removed required fields of #{inspect(values)} at path \"#{path}\". " <>
       "Making fields that were previously required, optional is not backwards-compatibile"
+  end
+
+  defp type_change?(state, %{"path" => path} = diff) do
+    if String.contains?(path, "type") do
+      type_message(state, diff)
+    else
+      state
+    end
+  end
+
+  defp type_message(state, %{"path" => path}) do
+    old_value = find_deepest(path, "type", state.old)
+    new_value = find_deepest(path, "type", state.new)
+
+    add_error(
+      state,
+      "You changed the `type` at \"#{path}\" from #{inspect(old_value)} to #{inspect(new_value)}. " <>
+        "Changing a field's type is not backwards-compatibile"
+    )
   end
 
   defp find_deepest(path, target, json) when is_binary(path) do
