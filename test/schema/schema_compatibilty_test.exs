@@ -82,9 +82,14 @@ defmodule Polyn.SchemaCompatabilityTest do
 
     new = %{"type" => "object", "required" => ["name"]}
 
-    assert_raise(Polyn.SchemaException, fn ->
-      SchemaCompatability.check!(old, new)
-    end)
+    %{message: message} =
+      assert_raise(Polyn.SchemaException, fn ->
+        SchemaCompatability.check!(old, new)
+      end)
+
+    assert message =~
+             "You added required fields of [\"name\"] at path \"/required\". " <>
+               "Making fields that were previously optional, required is not backwards-compatibile"
   end
 
   test "incompatible if new required field is added" do
