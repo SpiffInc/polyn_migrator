@@ -24,6 +24,7 @@ defmodule PolynMigrator.MixProject do
   defp deps do
     [
       {:ex_json_schema, "~> 0.9.1"},
+      {:json_diff, "~> 0.1.3"},
       {:jason, "~> 1.2"},
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:jetstream, git: "https://github.com/mmmries/jetstream"}
