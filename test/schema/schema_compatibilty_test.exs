@@ -12,7 +12,7 @@ defmodule Polyn.SchemaCompatabilityTest do
       }
     }
 
-    assert :ok = SchemaCompatability.check(nil, new)
+    assert :ok = SchemaCompatability.check!(nil, new)
   end
 
   test "compatible if exact same" do
@@ -32,7 +32,7 @@ defmodule Polyn.SchemaCompatabilityTest do
       }
     }
 
-    assert :ok = SchemaCompatability.check(old, new)
+    assert :ok = SchemaCompatability.check!(old, new)
   end
 
   test "compatible if new optional field is added" do
@@ -53,7 +53,7 @@ defmodule Polyn.SchemaCompatabilityTest do
       }
     }
 
-    assert :ok = SchemaCompatability.check(old, new)
+    assert :ok = SchemaCompatability.check!(old, new)
   end
 
   test "compatible if new nested optional field is added that has required" do
@@ -74,7 +74,7 @@ defmodule Polyn.SchemaCompatabilityTest do
       }
     }
 
-    assert :ok = SchemaCompatability.check(old, new)
+    assert :ok = SchemaCompatability.check!(old, new)
   end
 
   test "incompatible if existing field becomes required" do
@@ -83,7 +83,7 @@ defmodule Polyn.SchemaCompatabilityTest do
     new = %{"type" => "object", "required" => ["name"]}
 
     assert_raise(Polyn.SchemaException, fn ->
-      SchemaCompatability.check(old, new)
+      SchemaCompatability.check!(old, new)
     end)
   end
 
@@ -93,7 +93,7 @@ defmodule Polyn.SchemaCompatabilityTest do
     new = %{"type" => "object", "required" => ["name", "birthday"]}
 
     assert_raise(Polyn.SchemaException, fn ->
-      SchemaCompatability.check(old, new)
+      SchemaCompatability.check!(old, new)
     end)
   end
 
@@ -103,7 +103,7 @@ defmodule Polyn.SchemaCompatabilityTest do
     new = %{"type" => "object"}
 
     assert_raise(Polyn.SchemaException, fn ->
-      SchemaCompatability.check(old, new)
+      SchemaCompatability.check!(old, new)
     end)
   end
 
@@ -113,7 +113,7 @@ defmodule Polyn.SchemaCompatabilityTest do
     new = %{"type" => "object", "required" => ["name"]}
 
     assert_raise(Polyn.SchemaException, fn ->
-      SchemaCompatability.check(old, new)
+      SchemaCompatability.check!(old, new)
     end)
   end
 
@@ -139,7 +139,7 @@ defmodule Polyn.SchemaCompatabilityTest do
     }
 
     assert_raise(Polyn.SchemaException, fn ->
-      SchemaCompatability.check(old, new)
+      SchemaCompatability.check!(old, new)
     end)
   end
 
@@ -161,7 +161,7 @@ defmodule Polyn.SchemaCompatabilityTest do
     }
 
     assert_raise(Polyn.SchemaException, fn ->
-      SchemaCompatability.check(old, new)
+      SchemaCompatability.check!(old, new)
     end)
   end
 end

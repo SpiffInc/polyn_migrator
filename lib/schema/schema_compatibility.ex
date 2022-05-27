@@ -4,9 +4,9 @@ defmodule Polyn.SchemaCompatability do
   @doc """
   Check that a new schema is backwards-compatibile with a new schema
   """
-  def check(nil, _new), do: :ok
+  def check!(nil, _new), do: :ok
 
-  def check(old, new) do
+  def check!(old, new) do
     JSONDiff.diff(old, new)
     |> IO.inspect(label: "DIFFS")
     |> check_differences()
