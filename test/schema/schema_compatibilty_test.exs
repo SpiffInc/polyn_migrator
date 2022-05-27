@@ -176,7 +176,7 @@ defmodule Polyn.SchemaCompatabilityTest do
                "Adding new required fields is not backwards-compatibile"
   end
 
-  test "type change" do
+  test "incompatible if type changes" do
     old = %{"type" => "string"}
     new = %{"type" => "null"}
 
@@ -190,7 +190,21 @@ defmodule Polyn.SchemaCompatabilityTest do
                "Changing a field's type is not backwards-compatibile"
   end
 
-  test "multiple type changes" do
+  test "incompatible if adding a new type" do
+    old = %{"type" => "string"}
+    new = %{"type" => ["string", "integer"]}
+
+    %{message: message} =
+      assert_raise(Polyn.SchemaException, fn ->
+        SchemaCompatability.check!(old, new)
+      end)
+
+    assert message =~
+             "You changed the `type` at \"/type\" from \"string\" to [\"string\", \"integer\"]. " <>
+               "Changing a field's type is not backwards-compatibile"
+  end
+
+  test "incompatibile if multiple type changes" do
     old = %{
       "type" => "object",
       "properties" => %{
