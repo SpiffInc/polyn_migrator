@@ -300,4 +300,52 @@ defmodule Polyn.SchemaCompatabilityTest do
                "/additionalProperties"
              )
   end
+
+  test "incompatible if additionalProperties were true then changed to false" do
+    old = %{
+      "type" => "object",
+      "additionalProperties" => true
+    }
+
+    new = %{
+      "type" => "object",
+      "additionalProperties" => false
+    }
+
+    %{message: message} =
+      assert_raise(Polyn.SchemaException, fn ->
+        SchemaCompatability.check!(old, new)
+      end)
+
+    assert message =~
+             SchemaCompatability.closing_additional_properties_message(
+               true,
+               false,
+               "/additionalProperties"
+             )
+  end
+
+  test "incompatible if additionalProperties were typed then removed" do
+    old = %{
+      "type" => "object",
+      "additionalProperties" => %{"type" => "string"}
+    }
+
+    new = %{
+      "type" => "object",
+      "additionalProperties" => false
+    }
+
+    %{message: message} =
+      assert_raise(Polyn.SchemaException, fn ->
+        SchemaCompatability.check!(old, new)
+      end)
+
+    assert message =~
+             SchemaCompatability.closing_additional_properties_message(
+               %{"type" => "string"},
+               false,
+               "/additionalProperties"
+             )
+  end
 end
