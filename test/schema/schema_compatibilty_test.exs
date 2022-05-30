@@ -85,6 +85,22 @@ defmodule Polyn.SchemaCompatabilityTest do
     :ok = SchemaCompatability.check!(old, new)
   end
 
+  test "compatible if additionalProperties added as `true`" do
+    old = %{"type" => "object"}
+
+    new = %{"type" => "object", "additionalProperties" => true}
+
+    :ok = SchemaCompatability.check!(old, new)
+  end
+
+  test "compatible if additionalProperties was `false` and then removed" do
+    old = %{"type" => "object", "additionalProperties" => false}
+
+    new = %{"type" => "object"}
+
+    :ok = SchemaCompatability.check!(old, new)
+  end
+
   test "incompatible if existing field becomes required" do
     old = %{"type" => "object"}
 
@@ -201,7 +217,8 @@ defmodule Polyn.SchemaCompatabilityTest do
 
     assert message =~
              "You changed the `type` at \"/type\" from \"string\" to [\"string\", \"integer\"]. " <>
-               "Changing a field's type is not backwards-compatibile"
+               "Changing a field's type is not backwards-compatibile. Consumers may be expecting " <>
+               "a field to be a specific type and could break if the type is different"
   end
 
   test "incompatibile if multiple type changes" do
@@ -233,5 +250,25 @@ defmodule Polyn.SchemaCompatabilityTest do
     assert message =~
              "You changed the `type` at \"/properties/birthday/type\" from \"date\" to \"datetime\". " <>
                "Changing a field's type is not backwards-compatibile"
+  end
+
+  test "incompatible if additionalProperties added as false" do
+    old = %{
+      "type" => "object"
+    }
+
+    new = %{
+      "type" => "object",
+      "additionalProperties" => false
+    }
+
+    %{message: message} =
+      assert_raise(Polyn.SchemaException, fn ->
+        SchemaCompatability.check!(old, new)
+      end)
+
+    assert message =~
+             "You changed `additionalProperties` from true to false at \"/additionalProperties\"" <>
+               "Disallowing additionalProperties after allowing them is not backwards-compatibile"
   end
 end

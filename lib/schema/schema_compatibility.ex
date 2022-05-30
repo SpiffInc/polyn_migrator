@@ -1,10 +1,16 @@
 defmodule Polyn.SchemaCompatability do
+  # A change is backward-compatible if a Consumer of the data
+  # doesn't have to change any code to continue consuming the data
+  # Also backward-compatible if a Producer can continue producing
+  # the data without changing any code (e.g. A migration may run
+  # before a Producer codebase is updated and redeployed, we don't
+  # want to have to orchestrate deploys to keep things running smoothly)
   @moduledoc false
 
   defstruct [:old, :new, :diffs, errors: []]
 
   @doc """
-  Check that a new schema is backwards-compatibile with a new schema
+  Check that a new schema is backwards-compatibile with an old schema
   """
   def check!(nil, _new), do: :ok
 
@@ -36,6 +42,7 @@ defmodule Polyn.SchemaCompatability do
   defp check_diff(state, diff) do
     required_change?(state, diff)
     |> type_change?(diff)
+    |> additional_properties_change?(diff)
   end
 
   defp required_change?(state, %{"path" => path} = diff) do
@@ -47,10 +54,9 @@ defmodule Polyn.SchemaCompatability do
   end
 
   defp required_message(state, %{"path" => path} = diff) do
-    old_value = find_deepest(path, "required", state.old)
-    new_value = find_deepest(path, "required", state.new)
+    {old, new} = find_values(state, path, "required")
 
-    compare_required(state, diff, old_value, new_value)
+    compare_required(state, diff, old, new)
   end
 
   defp compare_required(state, diff, nil, new) do
@@ -112,14 +118,35 @@ defmodule Polyn.SchemaCompatability do
   end
 
   defp type_message(state, %{"path" => path}) do
-    old_value = find_deepest(path, "type", state.old)
-    new_value = find_deepest(path, "type", state.new)
+    {old, new} = find_values(state, path, "type")
 
     add_error(
       state,
-      "You changed the `type` at \"#{path}\" from #{inspect(old_value)} to #{inspect(new_value)}. " <>
-        "Changing a field's type is not backwards-compatibile"
+      "You changed the `type` at \"#{path}\" from #{inspect(old)} to #{inspect(new)}. " <>
+        "Changing a field's type is not backwards-compatibile. Consumers may be expecting " <>
+        "a field to be a specific type and could break if the type is different"
     )
+  end
+
+  defp additional_properties_change?(state, %{"path" => path} = diff) do
+    if String.contains?(path, "additionalProperties") do
+      additional_properties_message(state, diff)
+    else
+      state
+    end
+  end
+
+  defp additional_properties_message(state, %{"path" => path} = diff) do
+    {old, new} = find_values(state, path, "additionalProperties")
+
+    compare_additional_properties(state, diff, old, new)
+  end
+
+  defp compare_additional_properties(state, _diff, nil, true), do: state
+  defp compare_additional_properties(state, _diff, false, nil), do: state
+
+  defp find_values(state, path, key) do
+    {find_deepest(path, key, state.old), find_deepest(path, key, state.new)}
   end
 
   defp find_deepest(path, target, json) when is_binary(path) do
