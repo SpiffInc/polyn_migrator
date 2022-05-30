@@ -99,14 +99,19 @@ defmodule Polyn.SchemaCompatability do
     end
   end
 
-  defp added_required_fields_message(values, path) do
+  @doc "Message when required fields are added"
+  def added_required_fields_message(values, path) do
     "You added required fields of #{inspect(values)} at path \"#{path}\". " <>
-      "Adding new required fields is not backwards-compatibile"
+      "Adding new required fields is not backwards-compatibile. Existing Producers of the " <>
+      "event may not be including the new required fields and won't pass validation"
   end
 
-  defp removed_required_fields_message(values, path) do
+  @doc "Message when required fields are removed"
+  def removed_required_fields_message(values, path) do
     "You removed required fields of #{inspect(values)} at path \"#{path}\". " <>
-      "Making fields that were previously required, optional is not backwards-compatibile"
+      "Making fields that were previously required, optional is not backwards-compatibile. " <>
+      "Existing Consumers of the event may be expecting the removed required fields to exist " <>
+      "and will break when they are not included."
   end
 
   defp type_change?(state, %{"path" => path} = diff) do
@@ -120,12 +125,14 @@ defmodule Polyn.SchemaCompatability do
   defp type_message(state, %{"path" => path}) do
     {old, new} = find_values(state, path, "type")
 
-    add_error(
-      state,
-      "You changed the `type` at \"#{path}\" from #{inspect(old)} to #{inspect(new)}. " <>
-        "Changing a field's type is not backwards-compatibile. Consumers may be expecting " <>
-        "a field to be a specific type and could break if the type is different"
-    )
+    add_error(state, changed_type_message(old, new, path))
+  end
+
+  @doc "Message when the type has change"
+  def changed_type_message(old, new, path) do
+    "You changed the `type` at \"#{path}\" from #{inspect(old)} to #{inspect(new)}. " <>
+      "Changing a field's type is not backwards-compatibile. Consumers may be expecting " <>
+      "a field to be a specific type and could break if the type is different"
   end
 
   defp additional_properties_change?(state, %{"path" => path} = diff) do

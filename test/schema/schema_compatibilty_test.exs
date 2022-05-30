@@ -111,9 +111,7 @@ defmodule Polyn.SchemaCompatabilityTest do
         SchemaCompatability.check!(old, new)
       end)
 
-    assert message =~
-             "You added required fields of [\"name\"] at path \"/required\". " <>
-               "Adding new required fields is not backwards-compatibile"
+    assert message =~ SchemaCompatability.added_required_fields_message(["name"], "/required")
   end
 
   test "incompatible if new required field is added" do
@@ -127,8 +125,7 @@ defmodule Polyn.SchemaCompatabilityTest do
       end)
 
     assert message =~
-             "You added required fields of [\"birthday\"] at path \"/required/1\". " <>
-               "Adding new required fields is not backwards-compatibile"
+             SchemaCompatability.added_required_fields_message(["birthday"], "/required/1")
   end
 
   test "incompatible if required removed" do
@@ -141,9 +138,7 @@ defmodule Polyn.SchemaCompatabilityTest do
         SchemaCompatability.check!(old, new)
       end)
 
-    assert message =~
-             "You removed required fields of [\"name\"] at path \"/required\". " <>
-               "Making fields that were previously required, optional is not backwards-compatibile"
+    assert message =~ SchemaCompatability.removed_required_fields_message(["name"], "/required")
   end
 
   test "incompatible if required no longer required" do
@@ -157,8 +152,7 @@ defmodule Polyn.SchemaCompatabilityTest do
       end)
 
     assert message =~
-             "You removed required fields of [\"birthday\"] at path \"/required/1\". " <>
-               "Making fields that were previously required, optional is not backwards-compatibile"
+             SchemaCompatability.removed_required_fields_message(["birthday"], "/required/1")
   end
 
   test "incompatible if new required field is added nested" do
@@ -188,8 +182,10 @@ defmodule Polyn.SchemaCompatabilityTest do
       end)
 
     assert message =~
-             "You added required fields of [\"zip\"] at path \"/properties/address/required/1\". " <>
-               "Adding new required fields is not backwards-compatibile"
+             SchemaCompatability.added_required_fields_message(
+               ["zip"],
+               "/properties/address/required/1"
+             )
   end
 
   test "incompatible if type changes" do
@@ -201,9 +197,7 @@ defmodule Polyn.SchemaCompatabilityTest do
         SchemaCompatability.check!(old, new)
       end)
 
-    assert message =~
-             "You changed the `type` at \"/type\" from \"string\" to \"null\". " <>
-               "Changing a field's type is not backwards-compatibile"
+    assert message =~ SchemaCompatability.changed_type_message("string", "null", "/type")
   end
 
   test "incompatible if adding a new type" do
@@ -216,9 +210,7 @@ defmodule Polyn.SchemaCompatabilityTest do
       end)
 
     assert message =~
-             "You changed the `type` at \"/type\" from \"string\" to [\"string\", \"integer\"]. " <>
-               "Changing a field's type is not backwards-compatibile. Consumers may be expecting " <>
-               "a field to be a specific type and could break if the type is different"
+             SchemaCompatability.changed_type_message("string", ["string", "integer"], "/type")
   end
 
   test "incompatibile if multiple type changes" do
@@ -244,12 +236,18 @@ defmodule Polyn.SchemaCompatabilityTest do
       end)
 
     assert message =~
-             "You changed the `type` at \"/properties/name/type\" from \"string\" to \"integer\". " <>
-               "Changing a field's type is not backwards-compatibile"
+             SchemaCompatability.changed_type_message(
+               "string",
+               "integer",
+               "/properties/name/type"
+             )
 
     assert message =~
-             "You changed the `type` at \"/properties/birthday/type\" from \"date\" to \"datetime\". " <>
-               "Changing a field's type is not backwards-compatibile"
+             SchemaCompatability.changed_type_message(
+               "date",
+               "datetime",
+               "/properties/birthday/type"
+             )
   end
 
   test "incompatible if additionalProperties added as false" do
