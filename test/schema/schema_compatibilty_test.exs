@@ -93,14 +93,6 @@ defmodule Polyn.SchemaCompatabilityTest do
     :ok = SchemaCompatability.check!(old, new)
   end
 
-  test "compatible if additionalProperties was `false` and then removed" do
-    old = %{"type" => "object", "additionalProperties" => false}
-
-    new = %{"type" => "object"}
-
-    :ok = SchemaCompatability.check!(old, new)
-  end
-
   test "incompatible if existing field becomes required" do
     old = %{"type" => "object"}
 
@@ -250,6 +242,42 @@ defmodule Polyn.SchemaCompatabilityTest do
              )
   end
 
+  test "incompatible if additionalProperties was `false` and then removed" do
+    old = %{"type" => "object", "additionalProperties" => false}
+
+    new = %{"type" => "object"}
+
+    %{message: message} =
+      assert_raise(Polyn.SchemaException, fn ->
+        SchemaCompatability.check!(old, new)
+      end)
+
+    assert message =~
+             SchemaCompatability.opening_additional_properties_message(
+               false,
+               nil,
+               "/additionalProperties"
+             )
+  end
+
+  test "incompatible if additionalProperties was `false` and then true" do
+    old = %{"type" => "object", "additionalProperties" => false}
+
+    new = %{"type" => "object", "additionalProperties" => true}
+
+    %{message: message} =
+      assert_raise(Polyn.SchemaException, fn ->
+        SchemaCompatability.check!(old, new)
+      end)
+
+    assert message =~
+             SchemaCompatability.opening_additional_properties_message(
+               false,
+               true,
+               "/additionalProperties"
+             )
+  end
+
   test "incompatible if additionalProperties added as false" do
     old = %{
       "type" => "object"
@@ -266,7 +294,10 @@ defmodule Polyn.SchemaCompatabilityTest do
       end)
 
     assert message =~
-             "You changed `additionalProperties` from true to false at \"/additionalProperties\"" <>
-               "Disallowing additionalProperties after allowing them is not backwards-compatibile"
+             SchemaCompatability.closing_additional_properties_message(
+               nil,
+               false,
+               "/additionalProperties"
+             )
   end
 end

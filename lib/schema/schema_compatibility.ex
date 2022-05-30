@@ -150,7 +150,26 @@ defmodule Polyn.SchemaCompatability do
   end
 
   defp compare_additional_properties(state, _diff, nil, true), do: state
-  defp compare_additional_properties(state, _diff, false, nil), do: state
+
+  defp compare_additional_properties(state, diff, false, new) do
+    add_error(state, opening_additional_properties_message(false, new, diff["path"]))
+  end
+
+  defp compare_additional_properties(state, diff, old, false) do
+    add_error(state, closing_additional_properties_message(old, false, diff["path"]))
+  end
+
+  def opening_additional_properties_message(old, new, path) do
+    "You changed `additionalProperties` from #{inspect(old)} to #{inspect(new)} at #{path}. " <>
+      "Allowing additionalProperties after they were not allowed is not backwards-compatibile. " <>
+      "It can break Consumers that were expecting only a certain set of properties to exist"
+  end
+
+  def closing_additional_properties_message(old, new, path) do
+    "You changed `additionalProperties` from #{inspect(old)} to #{inspect(new)} at #{path}. " <>
+      "Disallowing additionalProperties after they were allowed is not backwards-compatibile. " <>
+      "It can cause existing Producers that were including additional properties in their payload to fail validation"
+  end
 
   defp find_values(state, path, key) do
     {find_deepest(path, key, state.old), find_deepest(path, key, state.new)}
