@@ -1,6 +1,14 @@
 defmodule Polyn.SchemaCompatability.State do
   @moduledoc false
-  defstruct [:old, :new, :diffs, errors: []]
+
+  @type t :: %__MODULE__{
+          old: map() | nil,
+          new: map(),
+          diffs: list(map()),
+          errors: list(binary())
+        }
+
+  defstruct [:old, :new, diffs: [], errors: []]
 
   def new(fields) do
     struct!(__MODULE__, fields)

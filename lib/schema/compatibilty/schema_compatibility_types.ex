@@ -3,6 +3,8 @@ defmodule Polyn.SchemaCompatability.Types do
 
   alias Polyn.SchemaCompatability.{State, Utils}
 
+  @behaviour Polyn.SchemaCompatability.Checker
+
   def check!(state) do
     Enum.filter(state.diffs, &changed?/1)
     |> Enum.reduce(state, fn diff, acc ->
