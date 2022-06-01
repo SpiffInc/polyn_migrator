@@ -12,6 +12,7 @@ defmodule Polyn.SchemaCompatability do
   @doc """
   Check that a new schema is backwards-compatibile with an old schema
   """
+  @spec check!(map() | nil, map()) :: :ok
   def check!(nil, _new), do: :ok
 
   def check!(old, new) do
