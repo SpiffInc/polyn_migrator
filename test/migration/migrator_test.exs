@@ -96,6 +96,35 @@ defmodule Polyn.MigratorTest do
            }
   end
 
+  test "backwards incompatible schema raises", context do
+    SchemaStore.save(
+      "foo.bar.v1",
+      %{
+        "type" => "object",
+        "properties" => %{
+          "name" => %{
+            "type" => "string"
+          }
+        }
+      }
+    )
+
+    add_dataschema(context.schemas_dir, "foo.bar.v1.json", """
+    {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "integer"
+        }
+      }
+    }
+    """)
+
+    assert_raise(Polyn.SchemaException, fn ->
+      Migrator.run(%{migrations_dir: context.migrations_dir, schemas_dir: context.schemas_dir})
+    end)
+  end
+
   # @tag capture_log: true
   # test "adds the polyn migration schemas to the server", %{tmp_dir: tmp_dir} do
   #   Migrator.run(["foo", tmp_dir])
