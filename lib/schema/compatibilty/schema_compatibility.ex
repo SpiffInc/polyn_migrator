@@ -7,7 +7,13 @@ defmodule Polyn.SchemaCompatability do
   # want to have to orchestrate deploys to keep things running smoothly)
   @moduledoc false
 
-  alias Polyn.SchemaCompatability.{AdditionalProperties, RequiredFields, State, Types}
+  alias Polyn.SchemaCompatability.{
+    AdditionalProperties,
+    PropertyNames,
+    RequiredFields,
+    State,
+    Types
+  }
 
   @doc """
   Check that a new schema is backwards-compatibile with an old schema
@@ -27,6 +33,7 @@ defmodule Polyn.SchemaCompatability do
       RequiredFields.check!(state)
       |> Types.check!()
       |> AdditionalProperties.check!()
+      |> PropertyNames.check!()
 
     if Enum.empty?(state.errors) do
       :ok
