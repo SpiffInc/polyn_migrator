@@ -73,4 +73,25 @@ defmodule Polyn.SchemaCompatability.TypesTest do
              )
            ] == errors
   end
+
+  test "if adding an invalid pattern" do
+    old = %{"type" => "object", "additionalProperties" => false}
+
+    new = %{
+      "type" => "object",
+      "propertyNames" => %{
+        "pattern" => "["
+      }
+    }
+
+    %State{errors: errors} = PropertyNames.check!(State.new(old: old, new: new))
+
+    assert [
+             PropertyNames.invalid_pattern_message(
+               "/propertyNames",
+               "[",
+               "{'missing terminating ] for character class', 1}"
+             )
+           ] == errors
+  end
 end
