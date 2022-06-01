@@ -18,8 +18,14 @@ defmodule Polyn.MigratorTest do
       SchemaStore.delete_store()
     end)
 
-    Map.put(context, :migrations_dir, Path.join(context.tmp_dir, "migrations"))
-    |> Map.put(:schemas_dir, Path.join(context.tmp_dir, "schemas"))
+    migrations_dir = Path.join(context.tmp_dir, "migrations")
+    schemas_dir = Path.join(context.tmp_dir, "schemas")
+
+    File.mkdir!(migrations_dir)
+    File.mkdir!(schemas_dir)
+
+    Map.put(context, :migrations_dir, migrations_dir)
+    |> Map.put(:schemas_dir, schemas_dir)
   end
 
   @tag capture_log: true
@@ -97,17 +103,21 @@ defmodule Polyn.MigratorTest do
   end
 
   test "backwards incompatible schema raises", context do
+    SchemaStore.create_store()
+
     SchemaStore.save(
       "foo.bar.v1",
-      %{
+      Polyn.Schema.compile("foo.bar.v1", "1.0.1", %{
         "type" => "object",
         "properties" => %{
           "name" => %{
             "type" => "string"
           }
         }
-      }
+      })
     )
+
+    SchemaStore.get("foo.bar.v1")
 
     add_dataschema(context.schemas_dir, "foo.bar.v1.json", """
     {
@@ -120,9 +130,17 @@ defmodule Polyn.MigratorTest do
     }
     """)
 
-    assert_raise(Polyn.SchemaException, fn ->
-      Migrator.run(%{migrations_dir: context.migrations_dir, schemas_dir: context.schemas_dir})
-    end)
+    %{message: message} =
+      assert_raise(Polyn.SchemaException, fn ->
+        Migrator.run(%{migrations_dir: context.migrations_dir, schemas_dir: context.schemas_dir})
+      end)
+
+    assert message =~
+             Polyn.SchemaCompatability.Types.changed_message(
+               "string",
+               "integer",
+               "/properties/data/properties/name/type"
+             )
   end
 
   # @tag capture_log: true

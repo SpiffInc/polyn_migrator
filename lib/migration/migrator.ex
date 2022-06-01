@@ -5,6 +5,7 @@ defmodule Polyn.Migrator do
   alias Polyn.Connection
   alias Polyn.Schema
   alias Polyn.SchemaStore
+  alias Polyn.SchemaCompatability
   alias Polyn.Serializers.JSON
   alias Polyn.Replicas
 
@@ -103,18 +104,14 @@ defmodule Polyn.Migrator do
   end
 
   defp add_schemas_to_store(state) do
-    if File.dir?(state.schemas_dir) do
-      File.ls!(state.schemas_dir)
-      |> Enum.map(fn file_name ->
-        type = String.replace(file_name, ".json", "")
-        schema = Schema.compile(type, "1.0.1", dataschema_dir: state.schemas_dir)
-
-        {type, schema}
-      end)
-      |> Enum.each(fn {type, schema} ->
-        :ok = SchemaStore.save(type, schema)
-      end)
-    end
+    File.ls!(state.schemas_dir)
+    |> Enum.map(fn file_name ->
+      type = String.replace(file_name, ".json", "")
+      schema = Schema.compile(type, "1.0.1", dataschema_dir: state.schemas_dir)
+      old_schema = SchemaStore.get(type)
+      SchemaCompatability.check!(old_schema, schema)
+      SchemaStore.save(type, schema)
+    end)
 
     state
   end
