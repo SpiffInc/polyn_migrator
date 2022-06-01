@@ -62,8 +62,8 @@ defmodule Polyn.SchemaCompatability.PropertyNames do
 
   def previously_open_message(pattern, path) do
     "You added a propertyNames pattern of #{pattern} at #{path} to a schema that " <>
-      "was previously open. This is not backwards-compatible as there may be additionalProperties " <>
-      "included in the data that don't conform to the pattern"
+      "was previously open. This is not backwards-compatible as there may be Producers including " <>
+      "additionalProperties in the data that don't conform to the pattern"
   end
 
   def non_matching_key_message(pattern, key, path, properties_path) do
