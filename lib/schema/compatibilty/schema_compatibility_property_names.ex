@@ -4,7 +4,7 @@ defmodule Polyn.SchemaCompatability.PropertyNames do
 
   alias Polyn.SchemaCompatability.{State, Utils}
 
-  def check!(%State{} = state) do
+  def check(%State{} = state) do
     Enum.filter(state.diffs, &changed?/1)
     |> Enum.reduce(state, fn diff, acc ->
       property_names_message(acc, diff)

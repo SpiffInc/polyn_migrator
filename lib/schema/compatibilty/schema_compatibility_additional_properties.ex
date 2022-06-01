@@ -4,7 +4,7 @@ defmodule Polyn.SchemaCompatability.AdditionalProperties do
 
   @behaviour Polyn.SchemaCompatability.Checker
 
-  def check!(state) do
+  def check(state) do
     Enum.filter(state.diffs, &changed?/1)
     |> Enum.reduce(state, fn diff, acc ->
       additional_properties_message(acc, diff)

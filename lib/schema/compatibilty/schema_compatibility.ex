@@ -30,10 +30,10 @@ defmodule Polyn.SchemaCompatability do
 
   defp check_differences(%State{} = state) do
     state =
-      RequiredFields.check!(state)
-      |> Types.check!()
-      |> AdditionalProperties.check!()
-      |> PropertyNames.check!()
+      RequiredFields.check(state)
+      |> Types.check()
+      |> AdditionalProperties.check()
+      |> PropertyNames.check()
 
     if Enum.empty?(state.errors) do
       :ok
