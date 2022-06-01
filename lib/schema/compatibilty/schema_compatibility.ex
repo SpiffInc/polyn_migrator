@@ -38,7 +38,16 @@ defmodule Polyn.SchemaCompatability do
     if Enum.empty?(state.errors) do
       :ok
     else
-      raise Polyn.SchemaException, Enum.join(state.errors, "\n")
+      errors = [header_error(state) | state.errors]
+      raise Polyn.SchemaException, Enum.join(errors, "\n")
     end
+  end
+
+  defp header_error(state) do
+    "You have made a backwards-incompatible change on schema #{state.new["$id"]}. If you " <>
+      "need to make a backwards-incompatible change you should create a new schema with a new name " <>
+      "(usually this means bumping the version number). " <>
+      "Producers should continue to publish the old event until you are certain that there are no more " <>
+      "Consumers subscribing to it."
   end
 end
