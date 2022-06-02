@@ -15,6 +15,7 @@ defmodule Polyn.Migrator do
   @typedoc """
   * `:migrations_dir` - Location of migration files
   * `:schemas_dir` - Location of schema files
+  * `:schema_store_name` - Name of the K/V store where schemas live
   * `:running_migration_id` - The timestamp/id of the migration file being run. Taken from the beginning of the file name
   * `:running_migration_command_num` - The number of the command being run in the migration module
   * `:already_run_migrations` - Migrations we've determined have already been executed on the server
@@ -25,6 +26,7 @@ defmodule Polyn.Migrator do
   @type t :: %__MODULE__{
           migrations_dir: binary(),
           schemas_dir: binary(),
+          schema_store_name: binary(),
           running_migration_id: non_neg_integer() | nil,
           running_migration_command_num: non_neg_integer() | nil,
           migration_stream_info: Stream.info() | nil,
@@ -40,6 +42,7 @@ defmodule Polyn.Migrator do
     :migration_stream_info,
     :migrations_dir,
     :schemas_dir,
+    :schema_store_name,
     already_run_migrations: [],
     production_migrations: [],
     application_migrations: []
@@ -50,6 +53,7 @@ defmodule Polyn.Migrator do
       Enum.into(opts, %{})
       |> Map.put_new(:migrations_dir, migrations_dir())
       |> Map.put_new(:schemas_dir, Schema.schemas_dir())
+      |> Map.put_new(:schema_store_name, SchemaStore.store_name())
 
     struct!(__MODULE__, opts)
   end
@@ -99,7 +103,7 @@ defmodule Polyn.Migrator do
   defp create_migration_stream(state), do: state
 
   defp create_schema_store(state) do
-    SchemaStore.create_store()
+    SchemaStore.create_store(name: state.schema_store_name)
     state
   end
 
@@ -110,7 +114,7 @@ defmodule Polyn.Migrator do
       schema = Schema.compile(type, "1.0.1", dataschema_dir: state.schemas_dir)
       old_schema = SchemaStore.get(type)
       SchemaCompatability.check!(old_schema, schema)
-      SchemaStore.save(type, schema)
+      SchemaStore.save(type, schema, name: state.schema_store_name)
     end)
 
     state

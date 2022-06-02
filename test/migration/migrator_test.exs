@@ -9,13 +9,14 @@ defmodule Polyn.MigratorTest do
 
   @moduletag :tmp_dir
 
+  @store_name "POLYN_SCHEMAS_MIGRATOR_TEST"
   @migration_stream "POLYN_MIGRATIONS"
   @migration_subject "POLYN_MIGRATIONS.all"
 
   setup context do
     on_exit(fn ->
       Stream.delete(Connection.name(), @migration_stream)
-      SchemaStore.delete_store()
+      SchemaStore.delete_store(name: @store_name)
     end)
 
     migrations_dir = Path.join(context.tmp_dir, "migrations")
@@ -26,12 +27,13 @@ defmodule Polyn.MigratorTest do
 
     Map.put(context, :migrations_dir, migrations_dir)
     |> Map.put(:schemas_dir, schemas_dir)
+    |> Map.put(:store_name, @store_name)
   end
 
   @tag capture_log: true
   test "creates migration stream if not there", context do
     Stream.delete(Connection.name(), @migration_stream)
-    Migrator.run(%{migrations_dir: context.migrations_dir, schemas_dir: context.schemas_dir})
+    run(context)
     assert {:ok, info} = Stream.info(Connection.name(), @migration_stream)
     assert info.config.name == @migration_stream
   end
@@ -44,7 +46,7 @@ defmodule Polyn.MigratorTest do
         subjects: [@migration_subject]
       })
 
-    Migrator.run(%{migrations_dir: context.migrations_dir, schemas_dir: context.schemas_dir})
+    run(context)
     assert {:ok, info} = Stream.info(Connection.name(), @migration_stream)
     assert info.config.name == @migration_stream
   end
@@ -62,13 +64,20 @@ defmodule Polyn.MigratorTest do
     }
     """)
 
-    Migrator.run(%{migrations_dir: context.migrations_dir, schemas_dir: context.schemas_dir})
+    run(context)
 
-    assert SchemaStore.get("foo.bar.v1")["properties"]["data"] == %{"type" => "null"}
-    assert SchemaStore.get("foo.bar.v2")["properties"]["data"] == %{"type" => "string"}
+    assert SchemaStore.get("foo.bar.v1", name: @store_name)["properties"]["data"] == %{
+             "type" => "null"
+           }
+
+    assert SchemaStore.get("foo.bar.v2", name: @store_name)["properties"]["data"] == %{
+             "type" => "string"
+           }
   end
 
   test "updates schemas in the store", context do
+    SchemaStore.create_store(name: @store_name)
+
     SchemaStore.save(
       "foo.bar.v1",
       %{
@@ -78,7 +87,8 @@ defmodule Polyn.MigratorTest do
             "type" => "string"
           }
         }
-      }
+      },
+      name: @store_name
     )
 
     add_dataschema(context.schemas_dir, "foo.bar.v1.json", """
@@ -95,15 +105,17 @@ defmodule Polyn.MigratorTest do
     }
     """)
 
-    Migrator.run(%{migrations_dir: context.migrations_dir, schemas_dir: context.schemas_dir})
+    run(context)
 
-    assert SchemaStore.get("foo.bar.v1")["properties"]["data"]["properties"]["birthday"] == %{
+    assert SchemaStore.get("foo.bar.v1", name: @store_name)["properties"]["data"]["properties"][
+             "birthday"
+           ] == %{
              "type" => "date"
            }
   end
 
   test "backwards incompatible schema raises", context do
-    SchemaStore.create_store()
+    SchemaStore.create_store(name: @store_name)
 
     SchemaStore.save(
       "foo.bar.v1",
@@ -114,7 +126,8 @@ defmodule Polyn.MigratorTest do
             "type" => "string"
           }
         }
-      })
+      }),
+      name: @store_name
     )
 
     SchemaStore.get("foo.bar.v1")
@@ -132,7 +145,7 @@ defmodule Polyn.MigratorTest do
 
     %{message: message} =
       assert_raise(Polyn.SchemaException, fn ->
-        Migrator.run(%{migrations_dir: context.migrations_dir, schemas_dir: context.schemas_dir})
+        run(context)
       end)
 
     assert message =~
@@ -222,6 +235,14 @@ defmodule Polyn.MigratorTest do
   #            Migrator.run(["my_auth_token", tmp_dir])
   #          end) =~ "No migrations found at #{tmp_dir}"
   # end
+
+  defp run(context) do
+    Migrator.run(%{
+      migrations_dir: context.migrations_dir,
+      schemas_dir: context.schemas_dir,
+      schema_store_name: context.store_name
+    })
+  end
 
   defp add_migration_file(dir, file_name, contents) do
     File.write!(Path.join(dir, file_name), contents)
