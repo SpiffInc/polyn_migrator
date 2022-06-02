@@ -130,8 +130,6 @@ defmodule Polyn.MigratorTest do
       name: @store_name
     )
 
-    SchemaStore.get("foo.bar.v1")
-
     add_dataschema(context.schemas_dir, "foo.bar.v1.json", """
     {
       "type": "object",
