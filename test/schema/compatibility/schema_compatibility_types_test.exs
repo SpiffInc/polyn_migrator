@@ -3,12 +3,21 @@ defmodule Polyn.SchemaCompatability.TypesTest do
 
   alias Polyn.SchemaCompatability.{Types, State}
 
+  describe "compatible" do
+    test "if type is same" do
+      old = %{"type" => "string"}
+      new = %{"type" => "string"}
+
+      assert %State{errors: []} = Types.check(State.new(old: old, new: new))
+    end
+  end
+
   describe "incompatible" do
     test "if type changes" do
       old = %{"type" => "string"}
       new = %{"type" => "null"}
 
-      %State{errors: errors} = Types.check!(State.new(old: old, new: new))
+      %State{errors: errors} = Types.check(State.new(old: old, new: new))
       assert [Types.changed_message("string", "null", "/type")] == errors
     end
 
@@ -16,7 +25,7 @@ defmodule Polyn.SchemaCompatability.TypesTest do
       old = %{"type" => "string"}
       new = %{"type" => ["string", "integer"]}
 
-      %State{errors: errors} = Types.check!(State.new(old: old, new: new))
+      %State{errors: errors} = Types.check(State.new(old: old, new: new))
       assert [Types.changed_message("string", ["string", "integer"], "/type")] == errors
     end
 
@@ -37,7 +46,7 @@ defmodule Polyn.SchemaCompatability.TypesTest do
         }
       }
 
-      %State{errors: errors} = Types.check!(State.new(old: old, new: new))
+      %State{errors: errors} = Types.check(State.new(old: old, new: new))
 
       assert [
                Types.changed_message("string", "integer", "/properties/name/type"),

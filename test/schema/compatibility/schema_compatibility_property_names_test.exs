@@ -1,4 +1,4 @@
-defmodule Polyn.SchemaCompatability.TypesTest do
+defmodule Polyn.SchemaCompatability.PropertyNamesTest do
   use ExUnit.Case, async: true
 
   alias Polyn.SchemaCompatability.{PropertyNames, State}
@@ -23,7 +23,7 @@ defmodule Polyn.SchemaCompatability.TypesTest do
         }
       }
 
-      %State{errors: []} = PropertyNames.check!(State.new(old: old, new: new))
+      %State{errors: []} = PropertyNames.check(State.new(old: old, new: new))
     end
   end
 
@@ -38,7 +38,7 @@ defmodule Polyn.SchemaCompatability.TypesTest do
         }
       }
 
-      %State{errors: errors} = PropertyNames.check!(State.new(old: old, new: new))
+      %State{errors: errors} = PropertyNames.check(State.new(old: old, new: new))
       assert [PropertyNames.previously_open_message("^[A-Z]*$", "/propertyNames")] == errors
     end
   end
@@ -62,7 +62,7 @@ defmodule Polyn.SchemaCompatability.TypesTest do
       }
     }
 
-    %State{errors: errors} = PropertyNames.check!(State.new(old: old, new: new))
+    %State{errors: errors} = PropertyNames.check(State.new(old: old, new: new))
 
     assert [
              PropertyNames.non_matching_key_message(
@@ -84,7 +84,7 @@ defmodule Polyn.SchemaCompatability.TypesTest do
       }
     }
 
-    %State{errors: errors} = PropertyNames.check!(State.new(old: old, new: new))
+    %State{errors: errors} = PropertyNames.check(State.new(old: old, new: new))
 
     assert [
              PropertyNames.invalid_pattern_message(

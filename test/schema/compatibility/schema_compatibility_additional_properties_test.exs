@@ -9,7 +9,7 @@ defmodule Polyn.SchemaCompatability.AdditionalPropertiesTest do
 
       new = %{"type" => "object", "additionalProperties" => true}
 
-      %State{errors: []} = AdditionalProperties.check!(State.new(old: old, new: new))
+      %State{errors: []} = AdditionalProperties.check(State.new(old: old, new: new))
     end
   end
 
@@ -19,7 +19,7 @@ defmodule Polyn.SchemaCompatability.AdditionalPropertiesTest do
 
       new = %{"type" => "object"}
 
-      %State{errors: errors} = AdditionalProperties.check!(State.new(old: old, new: new))
+      %State{errors: errors} = AdditionalProperties.check(State.new(old: old, new: new))
       assert [AdditionalProperties.opening_message(false, nil, "/additionalProperties")] == errors
     end
 
@@ -28,7 +28,7 @@ defmodule Polyn.SchemaCompatability.AdditionalPropertiesTest do
 
       new = %{"type" => "object", "additionalProperties" => true}
 
-      %State{errors: errors} = AdditionalProperties.check!(State.new(old: old, new: new))
+      %State{errors: errors} = AdditionalProperties.check(State.new(old: old, new: new))
 
       assert [AdditionalProperties.opening_message(false, true, "/additionalProperties")] ==
                errors
@@ -44,7 +44,7 @@ defmodule Polyn.SchemaCompatability.AdditionalPropertiesTest do
         "additionalProperties" => false
       }
 
-      %State{errors: errors} = AdditionalProperties.check!(State.new(old: old, new: new))
+      %State{errors: errors} = AdditionalProperties.check(State.new(old: old, new: new))
       assert [AdditionalProperties.closing_message(nil, false, "/additionalProperties")] == errors
     end
 
@@ -59,7 +59,7 @@ defmodule Polyn.SchemaCompatability.AdditionalPropertiesTest do
         "additionalProperties" => false
       }
 
-      %State{errors: errors} = AdditionalProperties.check!(State.new(old: old, new: new))
+      %State{errors: errors} = AdditionalProperties.check(State.new(old: old, new: new))
 
       assert [AdditionalProperties.closing_message(true, false, "/additionalProperties")] ==
                errors
@@ -76,7 +76,7 @@ defmodule Polyn.SchemaCompatability.AdditionalPropertiesTest do
         "additionalProperties" => false
       }
 
-      %State{errors: errors} = AdditionalProperties.check!(State.new(old: old, new: new))
+      %State{errors: errors} = AdditionalProperties.check(State.new(old: old, new: new))
 
       assert [
                AdditionalProperties.closing_message(

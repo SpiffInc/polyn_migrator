@@ -22,7 +22,7 @@ defmodule Polyn.SchemaCompatability.RequiredFieldsTest do
         }
       }
 
-      assert %State{errors: []} = RequiredFields.check!(State.new(old: old, new: new))
+      assert %State{errors: []} = RequiredFields.check(State.new(old: old, new: new))
     end
 
     test "if new nested optional field is added that has required" do
@@ -43,7 +43,7 @@ defmodule Polyn.SchemaCompatability.RequiredFieldsTest do
         }
       }
 
-      assert %State{errors: []} = RequiredFields.check!(State.new(old: old, new: new))
+      assert %State{errors: []} = RequiredFields.check(State.new(old: old, new: new))
     end
 
     test "if required field order changes" do
@@ -51,7 +51,7 @@ defmodule Polyn.SchemaCompatability.RequiredFieldsTest do
 
       new = %{"type" => "object", "required" => ["birthday", "name"]}
 
-      assert %State{errors: []} = RequiredFields.check!(State.new(old: old, new: new))
+      assert %State{errors: []} = RequiredFields.check(State.new(old: old, new: new))
     end
   end
 
@@ -61,7 +61,7 @@ defmodule Polyn.SchemaCompatability.RequiredFieldsTest do
 
       new = %{"type" => "object", "required" => ["name"]}
 
-      %State{errors: errors} = RequiredFields.check!(State.new(old: old, new: new))
+      %State{errors: errors} = RequiredFields.check(State.new(old: old, new: new))
 
       assert [RequiredFields.added_message(["name"], "/required")] == errors
     end
@@ -71,7 +71,7 @@ defmodule Polyn.SchemaCompatability.RequiredFieldsTest do
 
       new = %{"type" => "object", "required" => ["name", "birthday"]}
 
-      %State{errors: errors} = RequiredFields.check!(State.new(old: old, new: new))
+      %State{errors: errors} = RequiredFields.check(State.new(old: old, new: new))
 
       assert [RequiredFields.added_message(["birthday"], "/required/1")] == errors
     end
@@ -81,7 +81,7 @@ defmodule Polyn.SchemaCompatability.RequiredFieldsTest do
 
       new = %{"type" => "object"}
 
-      %State{errors: errors} = RequiredFields.check!(State.new(old: old, new: new))
+      %State{errors: errors} = RequiredFields.check(State.new(old: old, new: new))
 
       assert [RequiredFields.removed_message(["name"], "/required")] == errors
     end
@@ -91,7 +91,7 @@ defmodule Polyn.SchemaCompatability.RequiredFieldsTest do
 
       new = %{"type" => "object", "required" => ["name"]}
 
-      %State{errors: errors} = RequiredFields.check!(State.new(old: old, new: new))
+      %State{errors: errors} = RequiredFields.check(State.new(old: old, new: new))
 
       assert [RequiredFields.removed_message(["birthday"], "/required/1")] == errors
     end
@@ -117,7 +117,7 @@ defmodule Polyn.SchemaCompatability.RequiredFieldsTest do
         }
       }
 
-      %State{errors: errors} = RequiredFields.check!(State.new(old: old, new: new))
+      %State{errors: errors} = RequiredFields.check(State.new(old: old, new: new))
 
       assert [RequiredFields.added_message(["zip"], "/properties/address/required/1")] == errors
     end
