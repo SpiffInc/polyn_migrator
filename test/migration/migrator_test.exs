@@ -80,14 +80,14 @@ defmodule Polyn.MigratorTest do
 
     SchemaStore.save(
       "foo.bar.v1",
-      %{
+      Polyn.Schema.compile("foo.bar.v1", "1.0.1", %{
         "type" => "object",
         "properties" => %{
           "name" => %{
             "type" => "string"
           }
         }
-      },
+      }),
       name: @store_name
     )
 

@@ -112,7 +112,7 @@ defmodule Polyn.Migrator do
     |> Enum.map(fn file_name ->
       type = String.replace(file_name, ".json", "")
       schema = Schema.compile(type, "1.0.1", dataschema_dir: state.schemas_dir)
-      old_schema = SchemaStore.get(type)
+      old_schema = SchemaStore.get(type, name: state.schema_store_name)
       SchemaCompatability.check!(old_schema, schema)
       SchemaStore.save(type, schema, name: state.schema_store_name)
     end)
