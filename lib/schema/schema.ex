@@ -56,7 +56,10 @@ defmodule Polyn.Schema do
     CloudEvent.json_schema_for_version(version)
   end
 
-  defp schema_id(type) do
+  @doc """
+  Get the full id of a schema
+  """
+  def schema_id(type) do
     domain = Application.fetch_env!(:polyn_migrator, :domain)
     "#{Naming.dot_to_colon(domain)}:#{Naming.dot_to_colon(type)}"
   end

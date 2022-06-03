@@ -71,7 +71,7 @@ defmodule Polyn.NamingTest do
     end
 
     test "names can't have special characters" do
-      assert Naming.validate_event_name("user:*%[]<>$!@#created") ==
+      assert Naming.validate_event_name("user:*%[]<>$!@#-_created") ==
                {:error, "Event names must be lowercase, alphanumeric and dot separated"}
     end
 

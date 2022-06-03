@@ -1,9 +1,12 @@
 defmodule Polyn.SchemaGenerator do
   @moduledoc false
+  require Mix.Generator
+
   def run(args) do
     create_directory(args)
     validate_uniqueness(args)
     validate_name(args)
+    generate_file(args)
   end
 
   defp create_directory(%{dir: dir}) do
@@ -26,7 +29,23 @@ defmodule Polyn.SchemaGenerator do
     end
   end
 
+  defp generate_file(%{dir: dir, name: name}) do
+    file = Path.join(dir, file_name(name))
+    assigns = [id: Polyn.Schema.schema_id(name)]
+    Mix.Generator.create_file(file, schema_template(assigns))
+    file
+  end
+
   defp file_name(name) do
     "#{name}.json"
   end
+
+  Mix.Generator.embed_template(:schema, """
+  {
+    "$id": "<%= @id %>",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "description": "Describe the purpose of this event",
+    "type": ""
+  }
+  """)
 end
