@@ -66,3 +66,7 @@ end
 ```
 
 Inside the `change` function you can use the functions available in `Polyn.Migration` to update the NATS server. You can then run `mix polyn.migrate` to apply your changes.
+
+## Generate a Schema
+
+You can generate a new schema for an event with `mix polyn.gen.schema <name>`. The name of the schema is expected to be alphanumeric, lowercase, and dot separated. This will generate a new file in `priv/polyn/schemas/<name>.json` with JSON Schema boilerplate.
