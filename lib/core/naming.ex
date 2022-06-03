@@ -79,6 +79,26 @@ defmodule Polyn.Naming do
     String.replace(str, ~r/[\.\:]+v\d+/, "")
   end
 
+  @doc """
+  Validate the name of an event, also sometimes called an event `type`.
+
+  ## Examples
+
+      iex>Polyn.Naming.validate_event_name("user.created")
+      :ok
+
+      iex>Polyn.Naming.validate_event_name("user  created")
+      {:error, ["Event names can't have spaces"]}
+  """
+  @spec validate_event_name(name :: binary()) :: :ok | {:error, binary()}
+  def validate_event_name(name) do
+    if String.match?(name, ~r/^[a-z0-9]+(?:\.[a-z0-9]+)?$/) do
+      :ok
+    else
+      {:error, "Event names must be lowercase, alphanumeric and dot separated"}
+    end
+  end
+
   defp domain do
     Application.fetch_env!(:polyn_migrator, :domain)
   end

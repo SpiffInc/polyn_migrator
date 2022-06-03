@@ -49,4 +49,40 @@ defmodule Polyn.NamingTest do
       assert Naming.trim_version_suffix("com:acme:user:created:v1") == "com:acme:user:created"
     end
   end
+
+  describe "validate_event_name/1" do
+    test "valid names that's alphanumeric and dot separated passes" do
+      assert Naming.validate_event_name("user.created") == :ok
+    end
+
+    test "name can't have spaces" do
+      assert Naming.validate_event_name("user   created") ==
+               {:error, "Event names must be lowercase, alphanumeric and dot separated"}
+    end
+
+    test "name can't have tabs" do
+      assert Naming.validate_event_name("user\tcreated") ==
+               {:error, "Event names must be lowercase, alphanumeric and dot separated"}
+    end
+
+    test "name can't have linebreaks" do
+      assert Naming.validate_event_name("user\n\rcreated") ==
+               {:error, "Event names must be lowercase, alphanumeric and dot separated"}
+    end
+
+    test "names can't have special characters" do
+      assert Naming.validate_event_name("user:*%[]<>$!@#created") ==
+               {:error, "Event names must be lowercase, alphanumeric and dot separated"}
+    end
+
+    test "names can't start with a dot" do
+      assert Naming.validate_event_name(".user") ==
+               {:error, "Event names must be lowercase, alphanumeric and dot separated"}
+    end
+
+    test "names can't end with a dot" do
+      assert Naming.validate_event_name("user.") ==
+               {:error, "Event names must be lowercase, alphanumeric and dot separated"}
+    end
+  end
 end
