@@ -219,11 +219,11 @@ defmodule Polyn.MigratorTest do
     assert second_migration == "222"
   end
 
-  # test "logs when no local migrations found", %{tmp_dir: tmp_dir} do
-  #   assert capture_log(fn ->
-  #            Migrator.run(["my_auth_token", tmp_dir])
-  #          end) =~ "No migrations found at #{tmp_dir}"
-  # end
+  test "logs when no local migrations found", context do
+    assert capture_log(fn ->
+             run(context)
+           end) =~ "No migrations found at #{context.migrations_dir}"
+  end
 
   defp run(context) do
     Migrator.run(%{
