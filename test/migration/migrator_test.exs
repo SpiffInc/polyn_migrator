@@ -154,13 +154,6 @@ defmodule Polyn.MigratorTest do
              )
   end
 
-  # @tag capture_log: true
-  # test "adds the polyn migration schemas to the server", %{tmp_dir: tmp_dir} do
-  #   Migrator.run(["foo", tmp_dir])
-  #   assert %{} = SchemaStore.get("polyn.schema.create.v1")
-  #   assert %{} = SchemaStore.get("polyn.stream.create.v1")
-  # end
-
   test "adds a migration to create a new stream", context do
     add_migration_file(context.migrations_dir, "1234_create_stream.exs", """
     defmodule ExampleCreateStream do
@@ -182,10 +175,10 @@ defmodule Polyn.MigratorTest do
     Stream.delete(Connection.name(), "test_stream")
   end
 
-  # test "local migrations ignore non .exs files", %{tmp_dir: tmp_dir} do
-  #   File.write!(Path.join(tmp_dir, "foo.text"), "foo")
-  #   assert Migrator.run(["my_auth_token", tmp_dir]) == :ok
-  # end
+  test "local migrations ignore non .exs files", context do
+    File.write!(Path.join(context.migrations_dir, "foo.text"), "foo")
+    assert run(context) == :ok
+  end
 
   # test "local migrations in correct order", %{tmp_dir: tmp_dir} do
   #   add_migration_file(tmp_dir, "222_create_stream.exs", """

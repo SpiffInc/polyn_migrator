@@ -63,6 +63,8 @@ defmodule Polyn.Migrator do
     |> compile_migration_files()
     |> get_migration_commands()
     |> execute_commands()
+
+    :ok
   end
 
   @doc """
