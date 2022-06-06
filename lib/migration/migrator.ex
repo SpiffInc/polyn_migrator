@@ -3,6 +3,7 @@ defmodule Polyn.Migrator do
   require Logger
   alias Jetstream.API.Stream
   alias Polyn.MigrationStream
+  alias Polyn.Migration.Runner
   alias Polyn.Schema
   alias Polyn.SchemaStore
   alias Polyn.SchemaCompatability
@@ -12,12 +13,9 @@ defmodule Polyn.Migrator do
   * `:schemas_dir` - Location of schema files
   * `:schema_store_name` - Name of the K/V store where schemas live
   * `:running_migration_id` - The timestamp/id of the migration file being run. Taken from the beginning of the file name
-  * `:running_migration_command_num` - The number of the command being run in the migration module
   * `:migration_files` - The file names of migration files
   * `:migration_modules` - A list of tuples with the migration id and module code
   * `:already_run_migrations` - Migrations we've determined have already been executed on the server
-  * `:production_migrations` - Migrations that have been run on the production server already
-  * `:application_migrations` - Migrations that live locally in the codebase
   """
 
   @type t :: %__MODULE__{
@@ -25,28 +23,24 @@ defmodule Polyn.Migrator do
           schemas_dir: binary(),
           schema_store_name: binary(),
           running_migration_id: non_neg_integer() | nil,
-          running_migration_command_num: non_neg_integer() | nil,
           migration_stream_info: Stream.info() | nil,
           migration_files: list(binary()),
           migration_modules: list({integer(), module()}),
-          already_run_migrations: list(binary()),
-          production_migrations: list(binary()),
-          application_migrations: list(binary())
+          commands: list({integer(), tuple()}),
+          already_run_migrations: list(binary())
         }
 
   # Holds the state of the migration as we move through migration steps
   defstruct [
     :running_migration_id,
-    :running_migration_command_num,
     :migration_stream_info,
     :migrations_dir,
     :schemas_dir,
     :schema_store_name,
     migration_files: [],
     migration_modules: [],
-    already_run_migrations: [],
-    production_migrations: [],
-    application_migrations: []
+    commands: [],
+    already_run_migrations: []
   ]
 
   def new(opts \\ []) do
@@ -67,7 +61,8 @@ defmodule Polyn.Migrator do
     |> add_schemas_to_store()
     |> get_migration_files()
     |> compile_migration_files()
-    |> run_migrations()
+    |> get_migration_commands()
+    |> execute_commands()
   end
 
   @doc """
@@ -156,6 +151,32 @@ defmodule Polyn.Migrator do
     Map.put(state, :migration_modules, modules)
   end
 
-  defp run_migrations(state) do
+  defp get_migration_commands(state) do
+    {:ok, pid} = Runner.start_link(state)
+    Process.put(:polyn_migration_runner, pid)
+
+    Enum.each(state.migration_modules, fn {id, module} ->
+      Runner.update_running_migration_id(pid, id)
+      module.change()
+    end)
+
+    state = Runner.get_state(pid)
+    Runner.stop(pid)
+
+    state
+  end
+
+  defp execute_commands(%{commands: commands} = state) do
+    # Gather commmands by migration file so they are executed in order
+    Enum.group_by(commands, &elem(&1, 0))
+    |> Enum.sort_by(fn {key, _val} -> key end)
+    |> Enum.each(fn {id, commands} ->
+      Enum.each(commands, &Polyn.Migration.Command.execute/1)
+      # We only want to put the migration id into the stream once we know
+      # it was successfully executed
+      MigrationStream.add_migration(id)
+    end)
+
+    state
   end
 end

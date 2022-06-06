@@ -161,30 +161,26 @@ defmodule Polyn.MigratorTest do
   #   assert %{} = SchemaStore.get("polyn.stream.create.v1")
   # end
 
-  # test "adds a migration to create a new stream", %{tmp_dir: tmp_dir} do
-  #   add_migration_file(tmp_dir, "1234_create_stream.exs", """
-  #   defmodule ExampleCreateStream do
-  #     import Polyn.Migration
+  test "adds a migration to create a new stream", context do
+    add_migration_file(context.migrations_dir, "1234_create_stream.exs", """
+    defmodule ExampleCreateStream do
+      import Polyn.Migration
 
-  #     def change do
-  #       create_stream(name: "test_stream", subjects: ["test_subject"])
-  #     end
-  #   end
-  #   """)
+      def change do
+        create_stream(name: "test_stream", subjects: ["test_subject"])
+      end
+    end
+    """)
 
-  #   Migrator.run(["my_auth_token", tmp_dir])
+    run(context)
 
-  #   assert {:ok, %{data: data}} = Migrator.get_last_migration()
+    assert {:ok, %{data: data}} = Polyn.MigrationStream.get_last_migration()
+    assert data == "1234"
 
-  #   data = Jason.decode!(data)
-  #   assert data["type"] == "com.test.polyn.stream.create.v1"
-  #   assert data["data"]["name"] == "test_stream"
-  #   assert data["data"]["subjects"] == ["test_subject"]
-
-  #   assert {:ok, info} = Stream.info(Connection.name(), "test_stream")
-  #   assert info.config.name == "test_stream"
-  #   Stream.delete(Connection.name(), "test_stream")
-  # end
+    assert {:ok, info} = Stream.info(Connection.name(), "test_stream")
+    assert info.config.name == "test_stream"
+    Stream.delete(Connection.name(), "test_stream")
+  end
 
   # test "local migrations ignore non .exs files", %{tmp_dir: tmp_dir} do
   #   File.write!(Path.join(tmp_dir, "foo.text"), "foo")
