@@ -6,6 +6,14 @@ defmodule Polyn.MigrationStreamTest do
   @stream_name "POLYN_MIGRATIONS_TEST"
   @subject_name "POLYN_MIGRATIONS_TEST.all"
 
+  setup do
+    on_exit(fn ->
+      MigrationStream.delete(opts())
+    end)
+
+    :ok
+  end
+
   test "create/1 creates the stream" do
     assert {:ok, info} = MigrationStream.create(opts())
     assert info.config.name == @stream_name

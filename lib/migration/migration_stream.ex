@@ -1,4 +1,5 @@
 defmodule Polyn.MigrationStream do
+  # Manages the stream that tracks which migrations have already been run
   @moduledoc false
 
   alias Jetstream.API.Stream
@@ -20,6 +21,12 @@ defmodule Polyn.MigrationStream do
       })
 
     Stream.create(Connection.name(), stream)
+  end
+
+  @doc "Delete the migration stream"
+  @spec delete() :: :ok
+  def delete(opts \\ []) do
+    Stream.delete(Connection.name(), stream_name(opts))
   end
 
   @doc "Get information about the migration stream"
