@@ -26,6 +26,14 @@ defmodule Polyn.MigrationStreamTest do
     assert data == "123"
   end
 
+  test "add_migration/2 adds a migration id integer to the stream" do
+    assert {:ok, _info} = MigrationStream.create(opts())
+    assert :ok = MigrationStream.add_migration(123, opts())
+
+    assert {:ok, %{data: data}} = MigrationStream.get_last_migration(opts())
+    assert data == "123"
+  end
+
   defp opts do
     [name: @stream_name, subject: @subject_name]
   end

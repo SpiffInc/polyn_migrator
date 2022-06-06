@@ -30,7 +30,13 @@ defmodule Polyn.MigrationStream do
 
   @doc "Add an executed migration to the stream"
   @spec add_migration(migration_id :: binary()) :: :ok
-  def add_migration(migration_id, opts \\ []) do
+  def add_migration(migration_id, opts \\ [])
+
+  def add_migration(migration_id, opts) when is_integer(migration_id) do
+    add_migration(Integer.to_string(migration_id), opts)
+  end
+
+  def add_migration(migration_id, opts) do
     Gnat.pub(Connection.name(), stream_subject(opts), migration_id)
   end
 
