@@ -23,7 +23,7 @@ defmodule Polyn.MigrationStream do
   end
 
   @doc "Get information about the migration stream"
-  @spec info() :: {:ok, Stream.info()}
+  @spec info() :: nil | {:ok, Stream.info()}
   def info(opts \\ []) do
     Stream.info(Connection.name(), stream_name(opts))
   end
