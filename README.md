@@ -1,3 +1,5 @@
+# Deprecated in favor of https://github.com/SpiffInc/events
+
 # PolynMigrator
 
 This packages is intended to be used with a codebase that holds the migration and
